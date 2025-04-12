@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TFT Items Test",
+  title: "TFT Items Guess",
   description: "Test and improve your knowledge of TFT items !",
 };
 

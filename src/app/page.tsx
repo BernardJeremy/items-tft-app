@@ -217,47 +217,54 @@ export default function Home() {
 
   return (
     <div className="game-container">
+      <h3 className="game-title">TFT Items Guess</h3>
+      {/* Score Display in top left */}
+      <div className="score-container">
+        <h2>
+          <span className="score-value">{score}</span>
+          <span className="total-questions">/{totalQuestions}</span>
+        </h2>
+      </div>
+
       {/* Help section */}
-      <section className="help-section">
-        <div className="help-text">
-          <div className="text-sm text-gray-500 mt-2">
-              <p>
-                {currentQuestion?.mode === 1 && "Tip: Click a component twice to select it twice"}
-              </p>
-              <p>
-                Right-click to deselect.
-              </p>
+      {currentQuestion?.mode === 1 && (
+        <section className="help-section">
+          <div className="help-text">
+            <div className="text-sm text-gray-500 mt-2">
+                <p>
+                  Tip: Click a component twice to select it twice.
+                </p>
+                <p>
+                  Right-click to deselect.
+                </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Result overlay - centered on screen */}
+      {result !== null && (
+        <div className="result-overlay">
+          <div className={`result-panel ${result ? 'correct' : 'incorrect'}`}>
+            <h3 className={result ? "text-green-500" : "text-red-500"}>{result ? "Correct!" : "Incorrect!"}</h3>
+            {currentQuestion?.mode === 1 && Array.isArray(correctAnswer) ? (
+              <div className="correct-answer">
+                <p>Correct components:</p>
+                <div className="item-row">
+                  {correctAnswer.map((item, i) => (
+                    <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled isResultImage />
+                  ))}
+                </div>
+              </div>
+            ) : correctAnswer && !Array.isArray(correctAnswer) ? (
+              <div className="correct-answer">
+                <p>Correct item:</p>
+                <ItemImage item={correctAnswer} selected={false} disabled isResultImage />
+              </div>
+            ) : null}
           </div>
         </div>
-      </section>
-
-      {/* Result area - shows score and feedback */}
-      <section className="result-area">
-        <h2>Score: {score}/{totalQuestions}</h2>
-        
-        {result !== null && (
-          <div className={`result-message ${result ? 'correct' : 'incorrect'}`}>
-            <div>
-                <h3 className={result ? "text-gree-500" : "text-red-500"}>{result ? "Correct !" : "Incorrect !"}</h3>
-                {currentQuestion?.mode === 1 && Array.isArray(correctAnswer) ? (
-                  <div className="correct-answer">
-                    <p>Correct components:</p>
-                    <div className="item-row">
-                      {correctAnswer.map((item, i) => (
-                        <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled isResultImage />
-                      ))}
-                    </div>
-                  </div>
-                ) : correctAnswer && !Array.isArray(correctAnswer) ? (
-                  <div className="correct-answer">
-                    <p>Correct item:</p>
-                    <ItemImage item={correctAnswer} selected={false} disabled isResultImage />
-                  </div>
-                ) : null}
-              </div>
-          </div>
-        )}
-      </section>
+      )}
 
       {/* Question area */}
       {currentQuestion && (
@@ -265,7 +272,6 @@ export default function Home() {
           {currentQuestion.mode === 1 ? (
             // Mode 1: Show complete item
             <>
-              <h3>What components make this item?</h3>
               {currentQuestion.item && (
                 <ItemImage item={currentQuestion.item} selected={false} disabled={result !== null} />
               )}
@@ -273,7 +279,6 @@ export default function Home() {
           ) : (
             // Mode 2: Show components
             <>
-              <h3>What item do these components create?</h3>
               <div className="component-row">
                 {currentQuestion.components?.map((component, i) => (
                   <ItemImage key={`${component.id}_${i}`} item={component} selected={false} disabled={result !== null} />
