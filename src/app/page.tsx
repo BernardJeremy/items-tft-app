@@ -18,6 +18,8 @@ type QuestionType = {
   item?: Item;
   components?: Item[];
   resultItem?: Item;
+  situation?: string;
+  validAnswers?: string[];
 };
 
 export default function Home() {
@@ -31,8 +33,8 @@ export default function Home() {
 
   // Generate a new question with random mode
   const generateQuestion = () => {
-    // Randomly choose game mode: 1 or 2
-    const randomMode = Math.floor(Math.random() * 2) + 1;
+    // Randomly choose game mode: 1, 2, or 3
+    const randomMode = Math.floor(Math.random() * 3) + 1;
     setSelectedAnswers([]);
     setResult(null);
     
@@ -64,7 +66,7 @@ export default function Home() {
       });
       setCorrectAnswer(components);
       
-    } else {
+    } else if (randomMode === 2) {
       // Mode 2: Show components, guess complete item
       // Pick a random combination
       const combos = Object.keys(itemsData.combos);
@@ -80,7 +82,7 @@ export default function Home() {
         
         // Find the result item (could be in complete or emblems)
         const resultItem = itemsData.complete.find(item => item.id === resultItemId) || 
-                     itemsData.emblems.find(item => item.id === resultItemId);
+          itemsData.emblems.find(item => item.id === resultItemId);
         
         if (resultItem) {
           setCurrentQuestion({
@@ -91,6 +93,31 @@ export default function Home() {
           setCorrectAnswer(resultItem);
         }
       }
+    } else {
+      // Mode 3: Show situation question, select appropriate item(s)
+      const randomSituationIndex = Math.floor(Math.random() * itemsData.situations.length);
+      const situation = itemsData.situations[randomSituationIndex];
+      
+      // Find the correct items from validAnswers
+      const correctItems: Item[] = [];
+      
+      situation.validAnswers.forEach(answerId => {
+        const completeItem = itemsData.complete.find(item => item.id === answerId);
+        const emblemItem = itemsData.emblems.find(item => item.id === answerId);
+        
+        if (completeItem) {
+          correctItems.push(completeItem);
+        } else if (emblemItem) {
+          correctItems.push(emblemItem);
+        }
+      });
+      
+      setCurrentQuestion({
+        mode: randomMode,
+        situation: situation.question,
+        validAnswers: situation.validAnswers
+      });
+      setCorrectAnswer(correctItems);
     }
     setTotalQuestions(totalQuestions + 1);
   };
@@ -117,10 +144,15 @@ export default function Home() {
           const selectedIds = selectedAnswers.map(a => a.id).sort();
           isCorrect = correctIds[0] === selectedIds[0] && correctIds[1] === selectedIds[1];
         }
-      } else {
+      } else if (currentQuestion.mode === 2) {
         // Mode 2: Check if selected complete item matches the correct one
         if (selectedAnswers.length === 1 && currentQuestion.resultItem) {
           isCorrect = selectedAnswers[0].id === currentQuestion.resultItem.id;
+        }
+      } else if (currentQuestion.mode === 3) {
+        // Mode 3: Check if selected items match the valid answers
+        if (selectedAnswers.length > 0 && currentQuestion.validAnswers) {
+          isCorrect = currentQuestion.validAnswers.some(id => selectedAnswers.find(item => item.id === id));
         }
       }
       
@@ -139,6 +171,8 @@ export default function Home() {
     if (currentQuestion?.mode === 1 && selectedAnswers.length === 2) {
         checkAnswer();
     } else if (currentQuestion?.mode === 2 && selectedAnswers.length === 1) {
+        checkAnswer();
+    } else if (currentQuestion?.mode === 3 && selectedAnswers.length > 0) {
         checkAnswer();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,9 +198,13 @@ export default function Home() {
         const newAnswers = [...selectedAnswers, item];
         setSelectedAnswers(newAnswers);
       }
-    } else {
+    } else if (currentQuestion.mode === 2) {
       // In mode 2, we need to select exactly 1 complete item
       setSelectedAnswers([item]);
+    } else if (currentQuestion.mode === 3) {
+      // In mode 3, we can select multiple items
+      const newAnswers = [...selectedAnswers, item];
+      setSelectedAnswers(newAnswers);
     }
   };
 
@@ -256,10 +294,19 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            ) : correctAnswer && !Array.isArray(correctAnswer) ? (
+            ) : currentQuestion?.mode === 2 && correctAnswer && !Array.isArray(correctAnswer) ? (
               <div className="correct-answer">
                 <p>Correct item:</p>
                 <ItemImage item={correctAnswer} selected={false} disabled isResultImage />
+              </div>
+            ) : currentQuestion?.mode === 3 && Array.isArray(correctAnswer) ? (
+              <div className="correct-answer">
+                <p>Correct items:</p>
+                <div className="item-row">
+                  {correctAnswer.map((item, i) => (
+                    <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled isResultImage />
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -276,13 +323,20 @@ export default function Home() {
                 <ItemImage item={currentQuestion.item} selected={false} disabled={result !== null} />
               )}
             </>
-          ) : (
+          ) : currentQuestion.mode === 2 ? (
             // Mode 2: Show components
             <>
               <div className="component-row">
                 {currentQuestion.components?.map((component, i) => (
                   <ItemImage key={`${component.id}_${i}`} item={component} selected={false} disabled={result !== null} />
                 ))}
+              </div>
+            </>
+          ) : (
+            // Mode 3: Show situation question
+            <>
+              <div className="situation-question">
+                <p>{currentQuestion.situation}</p>
               </div>
             </>
           )}
@@ -302,8 +356,19 @@ export default function Home() {
               disabled={result !== null}
             />
           ))
-        ) : (
+        ) : currentQuestion?.mode === 2 ? (
           // Mode 2: Show complete items to choose from
+          [...itemsData.complete, ...itemsData.emblems].map((item) => (
+            <ItemImage 
+              key={item.id}
+              item={item}
+              selected={!!selectedAnswers.find(a => a.id === item.id)}
+              onClick={handleItemClick}
+              disabled={result !== null}
+            />
+          ))
+        ) : (
+          // Mode 3: Show all items to choose from
           [...itemsData.complete, ...itemsData.emblems].map((item) => (
             <ItemImage 
               key={item.id}

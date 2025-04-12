@@ -199,5 +199,127 @@ export const itemsData = {
         "spatula+frying_pan": "tacticians_cape",
         
         "frying_pan+frying_pan": "tacticians_shield",
-    }
+    },
+    situations: [
+        {
+            question: "You need to counter heavy magic damage. What item would you build?",
+            validAnswers: ["dragons_claw", "adaptative_helm"]
+        },
+        {
+            question: "Your ADC carry needs more attack speed and ability power. What would you build?",
+            validAnswers: ["rageblade"]
+        },
+        {
+            question: "You need to reduce enemy healing. What's the best item?",
+            validAnswers: ["morellonomicon", "sunfire_cape"]
+        },
+        {
+            question: "Your tank needs more armor against physical damage. What would you build?",
+            validAnswers: ["bramble_vest", "edge_of_night"]
+        },
+        {
+            question: "You need to cast abilities more frequently. What item helps with mana?",
+            validAnswers: ["blue_buff", "spear_of_shojin"]
+        },
+        {
+            question: "Your carry needs critical strike damage. What would you build?",
+            validAnswers: ["infinity_edge", "jeweled_gauntlet"]
+        },
+        {
+            question: "You need sustain and lifesteal for your carry. What item would help?",
+            validAnswers: ["bloodthirster", "hextech_gunblade"]
+        },
+        {
+            question: "You need to protect your carry from crowd control. What would you build?",
+            validAnswers: ["quicksilver"]
+        },
+        {
+            question: "You need maximum health for your frontline tank. What's best?",
+            validAnswers: ["warmogs"]
+        },
+        {
+            question: "Your ability power carry needs to maximize damage. What's the best item?",
+            validAnswers: ["rabadon_deathcap", "jeweled_gauntlet"]
+        },
+        {
+            question: "You need to shred enemy magic resistance. What item would you build?",
+            validAnswers: ["ionic_spark"]
+        },
+        {
+            question: "Your tank needs a mix of armor and magic resistance. What's the best item?",
+            validAnswers: ["gargoyle_stoneplate"]
+        },
+        {
+            question: "You need to maximize AD damage output against high HP targets. What would you build?",
+            validAnswers: ["giant_slayer", "last_whisper"]
+        },
+        {
+            question: "You want to convert basic attacks into AoE damage. What item would you use?",
+            validAnswers: ["runaans_hurricane"]
+        },
+        {
+            question: "Your champion needs both attack damage and health. What's a good option?",
+            validAnswers: ["steraks_gage"]
+        },
+        {
+            question: "You need an item that scales ability power over time. What would you build?",
+            validAnswers: ["archangels_staff"]
+        },
+        {
+            question: "You want an item that gives random bonuses each round. What would you use?",
+            validAnswers: ["thiefs_gloves", "hand_of_justice"]
+        },
+        {
+            question: "Your tank needs an item that damages surrounding enemies. What would you build?",
+            validAnswers: ["sunfire_cape", "ionic_spark"]
+        },
+        {
+            question: "You need an item that stacks attack damage and ability power over combat. What's best?",
+            validAnswers: ["titans_resolve"]
+        },
+        {
+            question: "You want to convert your unit into a Bruiser. What emblem would you use?",
+            validAnswers: ["bruiser_emblem"]
+        },
+        {
+            question: "You need to reduce enemy armor. What item would be most effective?",
+            validAnswers: ["last_whisper", "evershroud"]
+        },
+        {
+            question: "You want your unit to dodge crowd control effects. What would you build?",
+            validAnswers: ["quicksilver"]
+        },
+        {
+            question: "You need an item that gives attack speed with each attack. What would you use?",
+            validAnswers: ["rageblade"]
+        },
+        {
+            question: "You want to add an extra unit to your team. What item is required?",
+            validAnswers: ["tacticians_crown", "tacticians_shield", "tacticians_cape"],
+        },
+        {
+            question: "Your mage carry needs both mana and ability power. What's a good choice?",
+            validAnswers: ["archangels_staff", "blue_buff"]
+        },
+        {
+            question: "You need to heal nearby allies when your unit drops low. What item does this?",
+            validAnswers: ["redemption"]
+        },
+        {
+            question: "You want to make your AD carry also do magic damage. What would you build?",
+            validAnswers: ["statikk_shiv", "ionic_spark"]
+        },
+        {
+            question: "You need an item that counters shields. What would you choose?",
+            validAnswers: ["guardbreaker"]
+        },
+        {
+            question: "You want your spellcaster to heal from ability damage. What item helps?",
+            validAnswers: ["hextech_gunblade"]
+        },
+        {
+            question: "You need to turn your carry into an Executioner. What emblem would you use?",
+            validAnswers: ["executioner_emblem"]
+        }
+    ]
 };
