@@ -10,6 +10,7 @@ type Item = {
   label: string;
   src?: string;
   image?: string;
+  rightClick?: boolean; // For right-click deselection
 };
 
 type QuestionType = {
@@ -134,17 +135,21 @@ export default function Home() {
     
     if (!currentQuestion) return;
     
+    // Handle right-click (deselection)
+    if ('rightClick' in item && item.rightClick) {
+      // Remove the item from selection
+      setSelectedAnswers(selectedAnswers.filter(a => a.id !== item.id));
+      return;
+    }
+    
     if (currentQuestion.mode === 1) {
-      // In mode 1, we need to select exactly 2 components
-      if (selectedAnswers.find(a => a.id === item.id)) {
-        // If already selected, remove it
-        setSelectedAnswers(selectedAnswers.filter(a => a.id !== item.id));
-      } else if (selectedAnswers.length < 2) {
+      // In mode 1, we can select up to 2 components (same component can be selected twice)
+      if (selectedAnswers.length < 2) {
         // Add to selection if we have less than 2 items selected
         const newAnswers = [...selectedAnswers, item];
         setSelectedAnswers(newAnswers);
         
-        // If we now have 2 items selected, check the answer immediately
+        // If we now have 2 items selected, check the answer
         if (newAnswers.length === 2) {
           setTimeout(() => checkAnswer(), 100);
         }
@@ -161,29 +166,63 @@ export default function Home() {
   // Initialize the game
   useEffect(() => {
     generateQuestion();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Render item image
-  const ItemImage = ({ item, selected, onClick, disabled = false }: { 
+  const ItemImage = ({ item, selected, onClick, disabled = false, isResultImage = false }: { 
     item: Item, 
     selected: boolean, 
     onClick?: (item: Item) => void,
     disabled?: boolean
-  }) => (
-    <div className={`item-container ${disabled ? 'disabled' : ''}`}>
-      <Image 
-        src={item.src || item.image || ''}
-        alt={item.label}
-        className={`item-img ${selected ? 'selected' : ''}`}
-        onClick={() => !disabled && onClick && onClick(item)}
-        width={64}
-        height={64}
-      />
-    </div>
-  );
+    isResultImage?: boolean
+  }) => {
+    // Count how many times this item appears in selectedAnswers
+    const selectionCount = selectedAnswers.filter(a => a.id === item.id).length;
+    const showCount = selectionCount > 1;
+    
+    return (
+      <div className={`item-container ${disabled ? 'disabled' : ''}`}>
+        <Image 
+          src={item.src || item.image || ''}
+          alt={item.label}
+          title={item.label}
+          className={`item-img ${selected ? 'selected' : ''}`}
+          onClick={() => !disabled && onClick && onClick(item)}
+          onContextMenu={(e) => {
+            e.preventDefault(); // Prevent default right-click menu
+            if (!disabled && onClick) {
+              // Pass the item with a right-click flag
+              onClick({...item, rightClick: true});
+            }
+          }}
+          width={64}
+          height={64}
+        />
+        {showCount && !isResultImage && (
+          <div className="selection-count">
+            {selectionCount}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="game-container">
+      {/* Help section */}
+      <section className="help-section">
+        <div className="help-text">
+          <p className="text-sm text-gray-500 mt-2">
+            <p>
+              {currentQuestion?.mode === 1 && "Tip: Click a component twice to select it twice"}
+            </p>
+            <p>
+              Right-click to deselect.
+            </p>
+          </p>
+        </div>
+      </section>
+
       {/* Result area - shows score and feedback */}
       <section className="result-area">
         <h2>Score: {score}/{totalQuestions}</h2>
@@ -199,8 +238,8 @@ export default function Home() {
                   <div className="correct-answer">
                     <p>Correct components:</p>
                     <div className="item-row">
-                      {correctAnswer.map((item) => (
-                        <ItemImage key={item.id} item={item} selected={false} disabled />
+                      {correctAnswer.map((item, i) => (
+                        <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled />
                       ))}
                     </div>
                   </div>
