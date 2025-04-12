@@ -33,6 +33,8 @@ export default function Home() {
   const generateQuestion = () => {
     // Randomly choose game mode: 1 or 2
     const randomMode = Math.floor(Math.random() * 2) + 1;
+    setSelectedAnswers([]);
+    setResult(null);
     
     if (randomMode === 1) {
       // Mode 1: Show complete item, guess components
@@ -90,44 +92,57 @@ export default function Home() {
         }
       }
     }
-    
-    setSelectedAnswers([]);
-    setResult(null);
+    setTotalQuestions(totalQuestions + 1);
   };
 
-  // Check if the answer is correct
-  const checkAnswer = () => {
-    if (!currentQuestion) return;
-    
-    let isCorrect = false;
-    setTotalQuestions(totalQuestions + 1);
-    
-    if (currentQuestion.mode === 1) {
-      // Mode 1: Check if selected components match the correct ones
-      // We need exactly 2 components selected
-      if (selectedAnswers.length === 2 && currentQuestion.components) {
-        const correctIds = currentQuestion.components.map(c => c.id).sort();
-        const selectedIds = selectedAnswers.map(a => a.id).sort();
-        isCorrect = correctIds[0] === selectedIds[0] && correctIds[1] === selectedIds[1];
-      }
-    } else {
-      // Mode 2: Check if selected complete item matches the correct one
-      if (selectedAnswers.length === 1 && currentQuestion.resultItem) {
-        isCorrect = selectedAnswers[0].id === currentQuestion.resultItem.id;
-      }
+  useEffect(() => {
+    if (selectedAnswers.length === 0) {
+      return;
     }
+
     
-    if (isCorrect) {
-      setScore(score + 1);
+    const checkAnswer = () => {
+      if (!currentQuestion) {
+        console.error("No current question to check.");
+        return;
+      }
+      
+      let isCorrect = false;
+      
+      if (currentQuestion.mode === 1) {
+        // Mode 1: Check if selected components match the correct ones
+        // We need exactly 2 components selected
+        if (selectedAnswers.length === 2 && currentQuestion.components) {
+          const correctIds = currentQuestion.components.map(c => c.id).sort();
+          const selectedIds = selectedAnswers.map(a => a.id).sort();
+          isCorrect = correctIds[0] === selectedIds[0] && correctIds[1] === selectedIds[1];
+        }
+      } else {
+        // Mode 2: Check if selected complete item matches the correct one
+        if (selectedAnswers.length === 1 && currentQuestion.resultItem) {
+          isCorrect = selectedAnswers[0].id === currentQuestion.resultItem.id;
+        }
+      }
+      
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+      
+      setResult(isCorrect);
+      
+      // Generate new question after a delay
+      setTimeout(() => {
+        generateQuestion();
+      }, 2000);
+    };
+
+    if (currentQuestion?.mode === 1 && selectedAnswers.length === 2) {
+        checkAnswer();
+    } else if (currentQuestion?.mode === 2 && selectedAnswers.length === 1) {
+        checkAnswer();
     }
-    
-    setResult(isCorrect);
-    
-    // Generate new question after a delay
-    setTimeout(() => {
-      generateQuestion();
-    }, 2000);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAnswers, currentQuestion]);
 
   // Handle item click in the answer area
   const handleItemClick = (item: Item) => {
@@ -148,24 +163,17 @@ export default function Home() {
         // Add to selection if we have less than 2 items selected
         const newAnswers = [...selectedAnswers, item];
         setSelectedAnswers(newAnswers);
-        
-        // If we now have 2 items selected, check the answer
-        if (newAnswers.length === 2) {
-          setTimeout(() => checkAnswer(), 100);
-        }
       }
     } else {
       // In mode 2, we need to select exactly 1 complete item
       setSelectedAnswers([item]);
-      
-      // Check answer immediately
-      setTimeout(() => checkAnswer(), 100);
     }
   };
 
   // Initialize the game
   useEffect(() => {
     generateQuestion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Render item image
@@ -212,14 +220,14 @@ export default function Home() {
       {/* Help section */}
       <section className="help-section">
         <div className="help-text">
-          <p className="text-sm text-gray-500 mt-2">
-            <p>
-              {currentQuestion?.mode === 1 && "Tip: Click a component twice to select it twice"}
-            </p>
-            <p>
-              Right-click to deselect.
-            </p>
-          </p>
+          <div className="text-sm text-gray-500 mt-2">
+              <p>
+                {currentQuestion?.mode === 1 && "Tip: Click a component twice to select it twice"}
+              </p>
+              <p>
+                Right-click to deselect.
+              </p>
+          </div>
         </div>
       </section>
 
@@ -229,28 +237,24 @@ export default function Home() {
         
         {result !== null && (
           <div className={`result-message ${result ? 'correct' : 'incorrect'}`}>
-            {result ? (
-              <h3 className="text-green-500">Correct!</h3>
-            ) : (
-              <div>
-                <h3 className="text-red-500">Incorrect!</h3>
+            <div>
+                <h3 className={result ? "text-gree-500" : "text-red-500"}>{result ? "Correct !" : "Incorrect !"}</h3>
                 {currentQuestion?.mode === 1 && Array.isArray(correctAnswer) ? (
                   <div className="correct-answer">
                     <p>Correct components:</p>
                     <div className="item-row">
                       {correctAnswer.map((item, i) => (
-                        <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled />
+                        <ItemImage key={`${item.id}_${i}`} item={item} selected={false} disabled isResultImage />
                       ))}
                     </div>
                   </div>
                 ) : correctAnswer && !Array.isArray(correctAnswer) ? (
                   <div className="correct-answer">
                     <p>Correct item:</p>
-                    <ItemImage item={correctAnswer} selected={false} disabled />
+                    <ItemImage item={correctAnswer} selected={false} disabled isResultImage />
                   </div>
                 ) : null}
               </div>
-            )}
           </div>
         )}
       </section>
@@ -271,8 +275,8 @@ export default function Home() {
             <>
               <h3>What item do these components create?</h3>
               <div className="component-row">
-                {currentQuestion.components?.map((component) => (
-                  <ItemImage key={component.id} item={component} selected={false} disabled={result !== null} />
+                {currentQuestion.components?.map((component, i) => (
+                  <ItemImage key={`${component.id}_${i}`} item={component} selected={false} disabled={result !== null} />
                 ))}
               </div>
             </>
@@ -284,9 +288,9 @@ export default function Home() {
       <section id="answer-area" className="answer-area">
         {currentQuestion?.mode === 1 ? (
           // Mode 1: Show components to choose from
-          itemsData.components.map((component) => (
+          itemsData.components.map((component, i) => (
             <ItemImage 
-              key={component.id}
+              key={`${component.id}_${i}`}
               item={component}
               selected={!!selectedAnswers.find(a => a.id === component.id)}
               onClick={handleItemClick}
