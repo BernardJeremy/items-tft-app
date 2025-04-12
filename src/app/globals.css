@@ -88,6 +88,27 @@ body {
   justify-content: center;
 }
 
+.item-container {
+  position: relative;
+  display: inline-block;
+}
+
+.item-container.disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(128, 128, 128, 0.7);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.item-container.disabled {
+  cursor: not-allowed;
+}
+
 img.item-img {
   width: 64px;
   height: 64px;
