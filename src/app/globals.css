@@ -34,6 +34,35 @@ body {
   justify-content: center;
   min-height: 100vh;
   gap: 2rem;
+  padding: 2rem;
+}
+
+.result-area {
+  text-align: center;
+  margin-bottom: 2rem;
+  min-height: 120px;
+}
+
+.result-message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.result-message.correct {
+  background-color: rgba(0, 128, 0, 0.2);
+}
+
+.result-message.incorrect {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+.text-green-500 {
+  color: #10b981;
+}
+
+.text-red-500 {
+  color: #ef4444;
 }
 
 .question-area,
@@ -42,6 +71,21 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.question-area {
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.component-row, 
+.item-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
 img.item-img {
@@ -49,17 +93,24 @@ img.item-img {
   height: 64px;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border 0.2s;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+img.item-img:hover {
+  transform: scale(1.1);
 }
 
 img.item-img.selected {
-  border-color: white;
+  border-color: #4f46e5;
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
 }
 
 .controls {
   position: absolute;
   top: 1rem;
   left: 1rem;
+  z-index: 10;
 }
 
 button {
@@ -69,4 +120,23 @@ button {
   padding: 0.5rem 1rem;
   margin-right: 0.5rem;
   cursor: pointer;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background: #444;
+}
+
+h3 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.correct-answer {
+  margin-top: 0.5rem;
+}
+
+.correct-answer p {
+  margin-bottom: 0.5rem;
 }
