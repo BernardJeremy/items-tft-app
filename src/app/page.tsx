@@ -30,11 +30,18 @@ export default function Home() {
   const [selectedAnswers, setSelectedAnswers] = useState<Item[]>([]);
   const [result, setResult] = useState<boolean | null>(null); // null: no result, true: correct, false: incorrect
   const [correctAnswer, setCorrectAnswer] = useState<Item | Item[] | null>(null);
+  
+  // Game configuration states
+  const [showMenu, setShowMenu] = useState<boolean>(false);
+  const [enabledModes, setEnabledModes] = useState<number[]>([1, 2, 3]); // All modes enabled by default
+  const [emblemsEnabled, setEmblemsEnabled] = useState<boolean>(false); // Emblems disabled by default
 
   // Generate a new question with random mode
   const generateQuestion = () => {
-    // Randomly choose game mode: 1, 2, or 3
-    const randomMode = Math.floor(Math.random() * 3) + 1;
+    // Choose random mode from enabled modes
+    const availableModes = enabledModes.length > 0 ? enabledModes : [1, 2, 3];
+    const randomMode = availableModes[Math.floor(Math.random() * availableModes.length)];
+    
     setSelectedAnswers([]);
     setResult(null);
     
@@ -82,7 +89,7 @@ export default function Home() {
         
         // Find the result item (could be in complete or emblems)
         const resultItem = itemsData.complete.find(item => item.id === resultItemId) || 
-          itemsData.emblems.find(item => item.id === resultItemId);
+          (emblemsEnabled && itemsData.emblems.find(item => item.id === resultItemId));
         
         if (resultItem) {
           setCurrentQuestion({
@@ -103,7 +110,7 @@ export default function Home() {
       
       situation.validAnswers.forEach(answerId => {
         const completeItem = itemsData.complete.find(item => item.id === answerId);
-        const emblemItem = itemsData.emblems.find(item => item.id === answerId);
+        const emblemItem = emblemsEnabled ? itemsData.emblems.find(item => item.id === answerId) : null;
         
         if (completeItem) {
           correctItems.push(completeItem);
@@ -256,13 +263,99 @@ export default function Home() {
   return (
     <div className="game-container">
       <h3 className="game-title">TFT Items Guess</h3>
-      {/* Score Display in top left */}
-      <div className="score-container">
+      {/* Score Display in top left - Clickable to show menu */}
+      <div 
+        className="score-container"
+        onClick={() => setShowMenu(!showMenu)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setShowMenu(!showMenu);
+          }
+        }}
+      >
         <h2>
           <span className="score-value">{score}</span>
           <span className="total-questions">/{totalQuestions}</span>
         </h2>
       </div>
+
+      {/* Game Mode Menu */}
+      {showMenu && (
+        <div className="game-menu">
+          <div className="menu-container">
+            <h3>Game Settings</h3>
+            <div className="mode-options">
+              <div className="mode-option">
+                <input
+                  type="checkbox"
+                  id="mode1"
+                  checked={enabledModes.includes(1)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEnabledModes([...enabledModes, 1]);
+                    } else {
+                      setEnabledModes(enabledModes.filter(mode => mode !== 1));
+                    }
+                  }}
+                />
+                <label htmlFor="mode1">Mode 1: Guess components</label>
+              </div>
+              <div className="mode-option">
+                <input
+                  type="checkbox"
+                  id="mode2"
+                  checked={enabledModes.includes(2)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEnabledModes([...enabledModes, 2]);
+                    } else {
+                      setEnabledModes(enabledModes.filter(mode => mode !== 2));
+                    }
+                  }}
+                />
+                <label htmlFor="mode2">Mode 2: Guess complete items</label>
+              </div>
+              <div className="mode-option">
+                <input
+                  type="checkbox"
+                  id="mode3"
+                  checked={enabledModes.includes(3)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEnabledModes([...enabledModes, 3]);
+                    } else {
+                      setEnabledModes(enabledModes.filter(mode => mode !== 3));
+                    }
+                  }}
+                />
+                <label htmlFor="mode3">Mode 3: Find good item for situation</label>
+              </div>
+              <div className="mode-option">
+                <input
+                  type="checkbox"
+                  id="emblems"
+                  checked={emblemsEnabled}
+                  onChange={(e) => setEmblemsEnabled(e.target.checked)}
+                />
+                <label htmlFor="emblems">Enable emblems</label>
+              </div>
+            </div>
+            <button 
+              className="menu-close-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(false);
+                // Generate a new question with current settings
+                generateQuestion();
+              }}
+            >
+              Apply & Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Help section */}
       {currentQuestion?.mode === 1 && (
@@ -358,7 +451,7 @@ export default function Home() {
           ))
         ) : currentQuestion?.mode === 2 ? (
           // Mode 2: Show complete items to choose from
-          [...itemsData.complete, ...itemsData.emblems].map((item) => (
+          [...itemsData.complete, ...(emblemsEnabled ? itemsData.emblems : [])].map((item) => (
             <ItemImage 
               key={item.id}
               item={item}
@@ -369,7 +462,7 @@ export default function Home() {
           ))
         ) : (
           // Mode 3: Show all items to choose from
-          [...itemsData.complete, ...itemsData.emblems].map((item) => (
+          [...itemsData.complete, ...(emblemsEnabled ? itemsData.emblems : [])].map((item) => (
             <ItemImage 
               key={item.id}
               item={item}
